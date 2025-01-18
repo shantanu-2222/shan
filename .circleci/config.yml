@@ -1,0 +1,41 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - run:
+          name: Run tests
+          command: |
+            . venv/bin/activate
+            chmod +x *
+            pytest
+
+  deploy:
+    docker:
+      - image: circleci/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Deploy bot
+          command: |
+            . venv/bin/activate
+            chmod +x *
+            python g.py.py
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
