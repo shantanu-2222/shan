@@ -98,7 +98,7 @@ async def status(update: Update, context: CallbackContext):
 
 def main():
     # Replace 'YOUR_TOKEN' with your bot's API token
-    application = Application.builder().token("YOUR_TOKEN").build()
+    application = Application.builder().token("8032810151:AAFxY32Kudl9vZb8in_uQHxM0QEfRtnnv_k").build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
