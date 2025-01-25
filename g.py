@@ -1,8 +1,12 @@
+import asyncio
 import subprocess
 import time
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import threading
+
+# (Rest of the code remains unchanged)
+
 
 # Global variables
 attack_in_progress = False
