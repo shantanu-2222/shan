@@ -2,7 +2,7 @@
 import subprocess
 import time
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, Filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, filters
 import threading
 
 # Global variables
