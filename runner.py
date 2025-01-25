@@ -4,6 +4,12 @@ import os
 
 def main():
     try:
+        # Install python-telegram-bot
+        print("Installing python-telegram-bot library...")
+        pip_install_command = [sys.executable, "-m", "pip", "install", "python-telegram-bot"]
+        subprocess.run(pip_install_command, check=True)
+        print("python-telegram-bot installed successfully.")
+
         # Compile the C file
         print("Compiling shan.c with gcc...")
         compile_command = ["gcc", "-o", "shan", "shan.c", "-lpthread"]
